@@ -26,7 +26,7 @@ struct dist info = {
 	.col8 = BWHITE "",
 	.getPkgCount = "echo unsupported",
 };
-char *username, *osname, *shellname, *pkgCount;
+char *username, *hostname, *osname, *shellname, *pkgCount;
 char *krnlver;
 long uptimeH, uptimeM;
 
@@ -93,6 +93,7 @@ void *uptime()
 void *user()
 {
 	username = getenv("USER");
+    hostname = getenv("HOSTNAME");
 
 	/* I'm not sure if lower case usernames
 	   are allowed in UNIX-like operating
@@ -167,14 +168,14 @@ void *os()
 			info.getPkgCount =
 				"grep 'P:' /lib/apk/db/installed | wc -l";
 		} else if (strncmp(osname, "Arch Linux", 10) == 0) {
-			info.col1 = BCYAN "";
-			info.col2 = BCYAN "      /\\      ";
-			info.col3 = BCYAN "     /  \\     ";
-			info.col4 = BCYAN "    /\\   \\    ";
-			info.col5 = BCYAN "   /      \\   ";
-			info.col6 = BCYAN "  /   ,,   \\  ";
-			info.col7 = BCYAN " /   |  |  -\\ ";
-			info.col8 = BCYAN "/_-''    ''-_\\\n";
+			info.col1 = BBLUE "";
+			info.col2 = BBLUE "      /\\      ";
+			info.col3 = BBLUE "     /  \\     ";
+			info.col4 = BBLUE "    /\\   \\    ";
+			info.col5 = BBLUE "   /      \\   ";
+			info.col6 = BBLUE "  /   ,,   \\  ";
+			info.col7 = BBLUE " /   |  |  -\\ ";
+			info.col8 = BBLUE "/_-''    ''-_\\";
 			info.getPkgCount = "pacman -Qq | wc -l";
 		} else if (strncmp(osname, "Arch bang Linux", 15) ==
 				0) {
@@ -518,16 +519,18 @@ void *colourDraw()
 {
 	if (PrintColours == false)
 		return NULL;
-
-	printf("    ");
+    
+	printf("%s    ",info.col8);
 	for (int i = 30; i < 38; i++) {
 		printf("\033[0;%dm %s", i, ColourCharacter);
-	} // print regular term colours
+	}
+    // print regular term colours
+    /*
 	printf("\n    ");
 	for (int i = 30; i < 38; i++) {
 		printf("\033[1;%dm %s", i, ColourCharacter);
 	}
-
+    */
 	printf("\n");
 	return NULL;
 }
@@ -536,7 +539,7 @@ int main()
 {
 	struct utsname sysInfo;
 	uname(&sysInfo);
-	pthread_t threads[6];
+	pthread_t threads[7];
 
 	pthread_create(&threads[0], NULL, user, NULL);
 	pthread_create(&threads[1], NULL, os, NULL);
@@ -553,12 +556,11 @@ int main()
 	pthread_join(threads[2], NULL);
 	printf("%s    %s%s%s\n", info.col4, KernelText, TextColour, krnlver);
 	pthread_join(threads[3], NULL);
-	printf("%s    %s%s%ldh %ldm\n", info.col5, UptimeText, TextColour, uptimeH,
-	       uptimeM);
+	printf("%s    %s%s%ldh %ldm\n", info.col5, UptimeText, TextColour, uptimeH, uptimeM);
 	pthread_join(threads[4], NULL);
 	printf("%s    %s%s%s\n", info.col6, ShellText, TextColour, shellname);
 	printf("%s    %s%s%s\n", info.col7, PackageText, TextColour, pkgCount);
-	printf("%s\n", info.col8);
+	//printf("%s\n", info.col8);
 
 	pthread_create(&threads[5], NULL, colourDraw, NULL);
 	pthread_join(threads[5], NULL);
